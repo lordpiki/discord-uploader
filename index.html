@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload</title>
+</head>
+<body>
+    <h1>File Upload</h1>
+    <form id="uploadForm" action="http://localhost:3000/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" accept=".txt, .pdf, .png, .jpg, .jpeg" required>
+        <button type="submit">Upload</button>
+    </form>
+
+    <!-- Add this in your HTML file for each uploaded file -->
+<button onclick="downloadFile('file1.txt')">Download file1.txt</button>
+<button onclick="downloadFile('file2.png')">Download file2.png</button>
+
+<script>
+    function downloadFile(fileName) {
+        window.location.href = `/download/${fileName}`;
+    }
+</script>
+
+</body>
+</html>
