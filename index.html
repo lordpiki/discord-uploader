@@ -7,20 +7,42 @@
 </head>
 <body>
     <h1>File Upload</h1>
-    <form id="uploadForm" action="http://localhost:3000/upload" method="post" enctype="multipart/form-data">
+    <form id="uploadForm" action="/upload" method="post" enctype="multipart/form-data">
         <input type="file" name="file" accept=".txt, .pdf, .png, .jpg, .jpeg" required>
         <button type="submit">Upload</button>
     </form>
 
-    <!-- Add this in your HTML file for each uploaded file -->
-<button onclick="downloadFile('test.txt')">Download file1.txt</button>
-<button onclick="downloadFile('file2.png')">Download file2.png</button>
+    <h2>Uploaded Files</h2>
+    <ul id="fileList"></ul>
 
-<script>
-    function downloadFile(fileName) {
-        window.location.href = `/download/${fileName}`;
-    }
-</script>
+    <script>
+        // JavaScript code for handling file list and download buttons
+        function displayFiles(files) {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = ''; // Clear the previous list
 
+            files.forEach(file => {
+                const li = document.createElement('li');
+                const downloadButton = document.createElement('button');
+
+                downloadButton.textContent = `Download ${file.originalName}`;
+                downloadButton.addEventListener('click', () => downloadFile(file.fileId));
+
+                li.appendChild(downloadButton);
+                fileList.appendChild(li);
+            });
+        }
+
+        function downloadFile(fileId) {
+            // Send a request to download the file by fileId
+            window.location.href = `/download/${fileId}`;
+        }
+
+        // Fetch the list of uploaded files from the server
+        fetch('/files')
+            .then(response => response.json())
+            .then(files => displayFiles(files))
+            .catch(error => console.error('Error fetching files:', error));
+    </script>
 </body>
 </html>

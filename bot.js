@@ -2,17 +2,18 @@ const Discord = require('discord.js');
 const axios = require('axios');
 const fs = require('fs');
 const multer = require('multer');
+const { v4: uuidv4 } = require('uuid');
+const path = require('path');
 
-const { Client,  GatewayIntentBits } = Discord;
 
-const client = new Client({ intents: [ GatewayIntentBits.Guilds] });
+const { Client, GatewayIntentBits, MessageAttachment } = Discord;
+
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 const uploadedFiles = new Map();
-
-
 
 // Read tokens from the configuration file
 const { BOT_TOKEN, DISCORD_CHANNEL_ID } = readTokens();
@@ -31,22 +32,20 @@ const port = 3000;
 
 app.use(bodyParser.json());
 
-// Serve the HTML file
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
 app.post('/upload', upload.single('file'), (req, res) => {
     const file = req.file;
-    console.log(req.file);
+    const fileId = uuidv4();
 
-    // Upload the file to the Discord server
     const channel = client.channels.cache.get(DISCORD_CHANNEL_ID);
 
     if (channel) {
-        channel.send({ files: [{ attachment: file.buffer, name: req.file.originalname }] })
+        channel.send({ files: [{ attachment: file.buffer, name: fileId }] })
             .then(() => {
-                uploadedFiles.set(req.file.originalname, file.buffer); // Keep track of the uploaded file and its name
+                uploadedFiles.set(fileId, req.file.originalname);
                 res.json({ success: true });
             })
             .catch(error => {
@@ -59,27 +58,72 @@ app.post('/upload', upload.single('file'), (req, res) => {
     }
 });
 
+// Endpoint to get the list of uploaded files
+app.get('/files', (req, res) => {
+    const files = Array.from(uploadedFiles).map(([fileId, originalName]) => ({
+        fileId,
+        originalName,
+    }));
+    res.json(files);
+});
 
-// Endpoint to download a file by name
-app.get('/download/:fileName', (req, res) => {
-    const fileName = req.params.fileName;
-    const fileBuffer = uploadedFiles.get(fileName);
+// Updated endpoint to download a file by unique ID
+app.get('/download/:fileId', async (req, res) => {
+    const fileId = req.params.fileId;
+    const originalFileName = uploadedFiles.get(fileId);
 
-    if (fileBuffer) {
-        // Set the appropriate headers for file download
-        res.setHeader('Content-Type', 'application/octet-stream');
-        res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
-        res.send(fileBuffer);
+    if (originalFileName) {
+        const channel = client.channels.cache.get(DISCORD_CHANNEL_ID);
+
+        if (channel) {
+            const messages = await channel.messages.fetch({ limit: 100 });
+            
+            for (const [, message] of messages) {
+                const attachments = message.attachments;
+                for (const [, attachment] of attachments) {
+                    if (attachment.name === fileId) {
+                        // Set the appropriate headers for file download based on the file type
+                        const contentType = getContentType(originalFileName);
+                        res.setHeader('Content-Type', contentType);
+                        res.setHeader('Content-Disposition', `attachment; filename=${originalFileName}`);
+                        
+                        // Send the file content to the client
+                        res.send(await axios.get(attachment.url, { responseType: 'arraybuffer' }).then(response => Buffer.from(response.data, 'binary')));
+                        return;
+                    }
+                }
+            }
+        }
+        res.status(404).json({ success: false, error: 'File Not Found' });
     } else {
         res.status(404).json({ success: false, error: 'File Not Found' });
     }
 });
 
+
+// Function to determine the content type based on the file extension
+function getContentType(fileName) {
+    const extension = fileName.split('.').pop().toLowerCase();
+
+    switch (extension) {
+        case 'txt':
+            return 'text/plain';
+        case 'pdf':
+            return 'application/pdf';
+        case 'png':
+            return 'image/png';
+        case 'jpg':
+        case 'jpeg':
+            return 'image/jpeg';
+        default:
+            return 'application/octet-stream';
+    }
+}
+
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
 
-// Function to read tokens from the configuration file
 function readTokens() {
     const tokens = {};
 
