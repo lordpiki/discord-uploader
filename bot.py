@@ -3,6 +3,10 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 from discord import File
 
+token = ""
+with open("token.token", 'r') as token_file:
+    token = token_file.read()
+
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -39,4 +43,4 @@ async def upload_file(ctx):
         await ctx.send('You do not have permission to use this command.')
 
 # Run the bot
-bot.run('MTE4MDg5MjY4Mzc2MjQxNzY4NA.GdEdgT.VPRPDaIEahXJMOeqI68IXEV3xdd39g-6RHeIt0')
+bot.run(token)
