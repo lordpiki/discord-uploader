@@ -25,7 +25,7 @@
                 const li = document.createElement('li');
                 const downloadButton = document.createElement('button');
 
-                downloadButton.textContent = `Download ${file.originalName}`;
+                downloadButton.textContent = `Download ${file.originalName.originalName}`;
                 downloadButton.addEventListener('click', () => downloadFile(file.fileId));
 
                 li.appendChild(downloadButton);
