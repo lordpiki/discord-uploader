@@ -41,7 +41,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
             uploadedChunks: totalChunks,
         });
 
-        res.json({ success: true, fileId });
+        res.sendFile(__dirname + '/index.html');
     } else {
         // File size within the limit, send as a single message
         channel.send({ files: [{ attachment: file.buffer, name: `${fileId}_${0}` }] })
@@ -51,8 +51,8 @@ app.post('/upload', upload.single('file'), async (req, res) => {
                     totalChunks: 1,
                     uploadedChunks: 1,
                 });
-
-                res.json({ success: true, fileId });
+                
+                res.sendFile(__dirname + '/index.html');
             })
             .catch(error => {
                 console.error('Error uploading file to Discord:', error);
@@ -107,9 +107,6 @@ app.get('/download/:fileId', async (req, res) => {
         res.status(404).json({ success: false, error: 'File Not Found' });
     }
 });
-
-
-
 
 // Endpoint to get the list of uploaded files
 app.get('/files', (req, res) => {
