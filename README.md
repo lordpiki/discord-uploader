@@ -73,6 +73,3 @@ Contributions are welcome! Feel free to submit issues or pull requests.
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-```
-
-You can save this content in a file named `README.md` in your project's root directory.
