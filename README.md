@@ -16,7 +16,7 @@ A Discord bot that allows users to upload files to a Discord channel, with suppo
 - [x] Support for large files split into chunks.
 - [x] Download files from Discord.
 - [x] List uploaded files.
-- [ ] Organized file system on discord
+- [ ] Organized file system (Between sessions)
 - [ ] Folders
 - [ ] Multiple accounts
 - [ ] File sharing
