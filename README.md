@@ -1,6 +1,3 @@
-Certainly! Below is the README.md content in Markdown format:
-
-```markdown
 # Discord File Uploader Bot
 
 A Discord bot that allows users to upload files to a Discord channel, with support for large files split into chunks.
