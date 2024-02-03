@@ -45,7 +45,7 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 
     if (file.size > fileSizeLimit) {
         // File size exceeds the limit, split into chunks
-        const chunkSize = 8 * 1024 * 1024; // 8MB chunks
+        const chunkSize = 25 * 1024 * 1024; // 25MB chunks
         const totalChunks = Math.ceil(file.size / chunkSize);
 
         for (let i = 0; i < totalChunks; i++) {
@@ -64,16 +64,18 @@ app.post('/upload', upload.single('file'), async (req, res) => {
             uploadedChunks: totalChunks,
         });
 
-        res.json({ success: true });
+        res.json({ success: true, fileId });
     } else {
         // File size within the limit, send as a single message
         channel.send({ files: [{ attachment: file.buffer, name: `${fileId}_${0}` }] })
             .then(() => {
-                uploadedFiles.set(fileId, { originalName: req.file.originalname,
-                     totalChunks: 1,
-                    uploadedChunks: 1, });
+                uploadedFiles.set(fileId, {
+                    originalName: req.file.originalname,
+                    totalChunks: 1,
+                    uploadedChunks: 1,
+                });
 
-                res.json({ success: true });
+                res.json({ success: true, fileId });
             })
             .catch(error => {
                 console.error('Error uploading file to Discord:', error);
@@ -85,14 +87,11 @@ app.post('/upload', upload.single('file'), async (req, res) => {
 
 
 
-
-// Updated endpoint to download a file by unique ID
 // Updated endpoint to download a file by unique ID
 app.get('/download/:fileId', async (req, res) => {
     const fileId = req.params.fileId;
     const fileInfo = uploadedFiles.get(fileId);
 
-    console.log(fileId, fileInfo);
 
     if (fileInfo) {
         const { originalName, totalChunks, uploadedChunks } = fileInfo;
@@ -103,7 +102,6 @@ app.get('/download/:fileId', async (req, res) => {
             const fileChunks = [];
 
             for (let i = 0; i < totalChunks; i++) {
-                console.log("getting chunk", i);
                 const messages = await channel.messages.fetch({ limit: 100 });
                 const chunkMessage = messages.find(msg => msg.attachments.first()?.name === `${fileId}_${i}`);
 
@@ -132,7 +130,6 @@ app.get('/download/:fileId', async (req, res) => {
         res.status(404).json({ success: false, error: 'File Not Found' });
     }
 });
-
 
 
 
