@@ -7,7 +7,6 @@ A Discord bot that allows users to upload files to a Discord channel, with suppo
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Endpoints](#endpoints)
 - [Configuration](#configuration)
 - [Contributing](#contributing)
 - [License](#license)
@@ -55,16 +54,15 @@ A Discord bot that allows users to upload files to a Discord channel, with suppo
 
 3. Use the file upload form to upload files to Discord.
 
-## Endpoints
-
-- **GET /**: Displays the main page with the file upload form.
-- **POST /upload**: Handles file uploads.
-- **GET /download/:fileId**: Downloads a file by fileId.
-- **GET /files**: Retrieves the list of uploaded files.
-
 ## Configuration
 
-Edit the `tokens.token` file to configure your Discord bot token and channel ID.
+Create a `tokens.token` file to configure your Discord bot token and channel ID.
+The file should look something like this:
+```txt
+BOT_TOKEN=<your discord bot's token>
+DISCORD_CHANNEL_ID=<id of discord's chat room>
+
+```
 
 ## Contributing
 
