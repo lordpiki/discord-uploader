@@ -8,6 +8,8 @@ const { client, upload, uploadedFiles, DISCORD_CHANNEL_ID } = require('./botCont
 const app = express();
 const port = 3000;
 
+const FILE_TABLE_NAME = 'file_table'; // The name of the file to keep track of uploaded files
+
 app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
@@ -41,7 +43,8 @@ app.post('/upload', upload.single('file'), async (req, res) => {
             uploadedChunks: totalChunks,
         });
 
-        res.sendFile(__dirname + '/index.html');
+        
+        updateFileTable();
     } else {
         // File size within the limit, send as a single message
         channel.send({ files: [{ attachment: file.buffer, name: `${fileId}_${0}` }] })
@@ -60,9 +63,9 @@ app.post('/upload', upload.single('file'), async (req, res) => {
             });
 
     }
+    res.sendFile(__dirname + '/index.html');
+    updateFileTable();
 });
-
-
 
 // Updated endpoint to download a file by unique ID
 app.get('/download/:fileId', async (req, res) => {
@@ -135,5 +138,33 @@ function getContentType(fileName) {
             return 'application/octet-stream';
     }
 }
+
+// Function to update the file table on Discord
+const updateFileTable = () => {
+
+    const uploaded_Files = Array.from(uploadedFiles).map(([fileId, { originalName }]) => ({
+        fileId,
+        originalName,
+    }));
+
+    // Construct the content for the file table
+    const fileTableContent = uploaded_Files.map(file => `${file.fileId}: ${file.originalName}`).join('\n');
+
+
+    // Update the file table on Discord
+    const channel = client.channels.cache.get(DISCORD_CHANNEL_ID); // Make sure DISCORD_CHANNEL_ID is defined
+    if (channel) {
+        channel.send({
+            files: [{
+                attachment: Buffer.from(fileTableContent, 'utf-8'),
+                name: FILE_TABLE_NAME,
+            }],
+        })
+        .then(() => console.log('File table updated successfully.'))
+        .catch(error => console.error('Error updating file table:', error));
+    } else {
+        console.error(`Discord channel with ID ${DISCORD_CHANNEL_ID} not found.`);
+    }
+};
 
 module.exports = app;
