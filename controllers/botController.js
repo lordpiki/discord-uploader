@@ -25,7 +25,7 @@ function readTokens() {
   const tokens = {};
 
   try {
-    const data = fs.readFileSync('./controllers/tokens.token', 'utf8');
+    const data = fs.readFileSync('tokens.token', 'utf8');
     const lines = data.split('\n');
 
     for (const line of lines) {
